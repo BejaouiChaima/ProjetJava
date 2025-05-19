@@ -128,4 +128,20 @@ public class SalleDao {
 
         return salles;
     }
+
+    public static int getIdSalleParNumero(int numero) {
+        String sql = "SELECT id_salle FROM salle WHERE numero = ?";
+        try (Connection conn = DatbaseCnx.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, numero);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_salle");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur récupération ID salle : " + e.getMessage());
+        }
+        return -1; // si non trouvé
+    }
+
 }

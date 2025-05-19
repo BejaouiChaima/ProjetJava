@@ -8,7 +8,6 @@ public class DatbaseCnx {
             String url = "jdbc:mysql://localhost:3306/salledecinerma";
             String user = "root";
             String password = "";
-            System.out.println("Connexion etablie");
             return DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
             e.printStackTrace();

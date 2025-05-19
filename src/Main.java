@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Scanner;
 import java.sql.SQLException;
@@ -82,14 +83,13 @@ public class Main {
     // Menu pour les clients
     private static void menuClient(Scanner sc, User user) {
         boolean connecté = true;
+
         while (connecté) {
             System.out.println("\n=== MENU CLIENT ===");
             System.out.println("1 - Voir les projections");
-            System.out.println("2 - Réserver une séance");
-            System.out.println("3 - Consulter mes réservations");
-            System.out.println("4 - Payer une réservation");
-            System.out.println("5 - Voir mes billets");
-            System.out.println("6 - Se déconnecter");
+            System.out.println("2 - Gérer mes réservations");
+            System.out.println("3 - Voir mes billets");
+            System.out.println("4 - Se déconnecter");
 
             System.out.print("Choix : ");
             int action = sc.nextInt();
@@ -100,18 +100,12 @@ public class Main {
                     ProjectionDao.consulterSeances();
                     break;
                 case 2:
-                    ajouterReservationUtilisateur();
+                    gererReservationClient(sc, user);
                     break;
                 case 3:
-                    consulterMesReservations(user);
+                    BilletDao.consulterBilletsParUser(user.getId());
                     break;
                 case 4:
-                    payerReservation(sc);
-                    break;
-                case 5:
-                    consulterMesBillets(user);
-                    break;
-                case 6:
                     connecté = false;
                     System.out.println("Déconnecté avec succès.");
                     break;
@@ -121,19 +115,69 @@ public class Main {
         }
     }
 
+    private static void gererReservationClient(Scanner sc, User user) {
+        boolean retour = false;
+
+        while (!retour) {
+            System.out.println("\n=== GESTION DE MES RESERVATIONS ===");
+            System.out.println("1 - Ajouter une réservation");
+            System.out.println("2 - Consulter mes réservations");
+            System.out.println("3 - Payer une réservation");
+            System.out.println("4 - Annuler une réservation");
+            System.out.println("0 - Retour au menu client");
+
+            System.out.print("Choix : ");
+            int choix = sc.nextInt();
+            sc.nextLine();
+
+            switch (choix) {
+                case 1:
+                    ajouterReservationUtilisateur();
+                    break;
+                case 2:
+                    consulterMesReservations(user);
+                    break;
+                case 3:
+                    payerReservation(sc, user);
+                    break;
+                case 4:
+                    annulerMaReservation(sc, user);
+                    break;
+                case 0:
+                    retour = true;
+                    break;
+                default:
+                    System.out.println("Choix invalide !");
+            }
+        }
+    }
+    private static void annulerMaReservation(Scanner sc, User user) {
+        consulterMesReservations(user);
+        System.out.print("Entrez l'ID de la réservation à annuler : ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        ReservationDao.annulerMaReservation(id); // Appelle directement ta méthode existante
+    }
+
     private static void ajouterReservationUtilisateur() {
+        ProjectionDao.consulterSeances();
         Scanner scanner = new Scanner(System.in);
 
-        // Demander à l'utilisateur l'id de la séance et le nombre de places
         System.out.print("Entrez l'ID de la séance : ");
         int idSeance = scanner.nextInt();
 
-        System.out.print("Entrez le nombre de places : ");
-        int nbPlaces = scanner.nextInt();
+        boolean reservationValide = false;
 
-        // Appeler la méthode ajouterReservation de ReservationDao
-        ReservationDao.ajouterReservation(idSeance, nbPlaces);
+        while (!reservationValide) {
+            System.out.print("Entrez le nombre de places : ");
+            int nbPlaces = scanner.nextInt();
+
+            // On redirige vers une version modifiée de la méthode ajouterReservation
+            reservationValide = ReservationDao.ajouterReservation(idSeance, nbPlaces);
+        }
     }
+
     // Menu pour les administrateurs
     private static void menuAdmin(Scanner sc, User user) {
         boolean connecté = true;
@@ -142,9 +186,10 @@ public class Main {
             System.out.println("1 - Gestion des Films");
             System.out.println("2 - Gestion des Salles");
             System.out.println("3 - Gestion des projections");
-            System.out.println("4 - Voir toutes les réservations");
+            System.out.println("4 - Gestion des réservations");
             System.out.println("5 - Voir toutes les billets");
-            System.out.println("6 - Se déconnecter");
+            System.out.println("6 - Gestion des utilisateurs");
+            System.out.println("7 - Se déconnecter");
 
             System.out.print("Choix : ");
             int action = sc.nextInt();
@@ -163,14 +208,49 @@ public class Main {
                     gestionProjections(sc);
                     break;
                 case 4:
-                    consulterToutesReservations();
+                    gestionReservations(sc);
                     break;
                 case 5:
-                    consulterTousLesBillets();
+                    BilletDao.consulterTousBillets();
                     break;
                 case 6:
+                    gestionUtilisateurs(sc);
+                    break;
+                case 7:
                     connecté = false;
                     System.out.println("Déconnecté avec succès.");
+                    break;
+                default:
+                    System.out.println("Choix invalide.");
+            }
+        }
+    }
+    private static void gestionUtilisateurs(Scanner sc) {
+        boolean retour = false;
+
+        while (!retour) {
+            System.out.println("\n=== GESTION DES UTILISATEURS ===");
+            System.out.println("1 - Afficher tous les utilisateurs");
+            System.out.println("2 - Modifier un utilisateur");
+            System.out.println("3 - Supprimer un utilisateur");
+            System.out.println("0 - Retour au menu administrateur");
+            System.out.print("Choix : ");
+
+            int choix = sc.nextInt();
+            sc.nextLine();
+
+            switch (choix) {
+                case 1:
+                    afficherTousLesUtilisateurs();
+                    break;
+                case 2:
+                    modifierUtilisateur(sc);
+                    break;
+                case 3:
+                    supprimerUtilisateur(sc);
+                    break;
+                case 0:
+                    retour = true;
                     break;
                 default:
                     System.out.println("Choix invalide.");
@@ -257,7 +337,38 @@ public class Main {
             }
         }
     }
+    private static void gestionReservations(Scanner sc) {
+        boolean retour = false;
 
+        while (!retour) {
+            System.out.println("\n=== GESTION DES PROJECTIONS ===");
+            System.out.println("1 - Consulter toutes les reservations");
+            System.out.println("2 - Annuler reservation");
+            System.out.println("0 - Retour au menu administrateur");
+            System.out.print("Choix : ");
+
+            int choix = sc.nextInt();
+            sc.nextLine();  // Consommer la ligne restante
+
+            switch (choix) {
+                case 1:
+                    consulterToutesReservations();
+                    break;
+                case 2:
+                    ReservationDao.consulterToutesReservations();
+                    System.out.print("Entrez l'ID de la réservation à annuler : ");
+                    int idReservation = sc.nextInt();
+                    sc.nextLine();
+                    ReservationDao.annulerReservationParAdmin(idReservation);
+                    break;
+                case 0:
+                    retour = true;
+                    break;
+                default:
+                    System.out.println("Choix invalide.");
+            }
+        }
+    }
     private static void gestionProjections(Scanner sc) {
         boolean retour = false;
 
@@ -284,7 +395,7 @@ public class Main {
                     supprimerProjection(sc);
                     break;
                 case 4:
-                    consulterProjections();
+                    ProjectionDao.consulterSeances();
                     break;
                 case 0:
                     retour = true;
@@ -294,78 +405,252 @@ public class Main {
             }
         }
     }
+    private static void afficherTousLesUtilisateurs() {
+        List<User> users = UserDao.getAllUsers();
+        System.out.println("\n=== LISTE DES UTILISATEURS ===");
+
+        if (users.isEmpty()) {
+            System.out.println("Aucun utilisateur trouvé.");
+        } else {
+            System.out.printf("%-5s | %-20s | %-25s | %-30s%n",
+                    "ID", "Nom et Prénom", "Email", "Rôle");
+            System.out.println("-".repeat(90));
+
+            for (User u : users) {
+                System.out.printf("%-5d | %-20s | %-25s | %-30s%n",
+                        u.getId(), u.getNomComplet(), u.getEmail(), u.getRole());
+            }
+        }
+    }
+
+    private static void modifierUtilisateur(Scanner sc) {
+        afficherTousLesUtilisateurs();
+        System.out.print("Entrez l'ID de l'utilisateur à modifier : ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        List<User> users = UserDao.getAllUsers();
+        User user = users.stream().filter(u -> u.getId() == id).findFirst().orElse(null);
+
+        if (user == null) {
+            System.out.println("Utilisateur non trouvé.");
+            return;
+        }
+
+        System.out.print("Nouveau nom  : ");
+        String nom = sc.nextLine().trim();
+        if (!nom.isEmpty()) user.setNom(nom);
+
+        System.out.print("Nouveau prénom  : ");
+        String prenom = sc.nextLine().trim();
+        if (!prenom.isEmpty()) user.setPrenom(prenom);
+
+        System.out.print("Nouvel email : ");
+        String email = sc.nextLine().trim();
+        if (!email.isEmpty()) user.setEmail(email);
+
+        System.out.print("Nouveau rôle : ");
+        String role = sc.nextLine().trim();
+        if (!role.isEmpty() && (role.equals("admin") || role.equals("client"))) {
+            user.setRole(role);
+        }
+
+        if (UserDao.updateUser(user)) {
+            System.out.println("Utilisateur modifié avec succès.");
+        } else {
+            System.out.println("Échec de la modification.");
+        }
+    }
+
+    private static void supprimerUtilisateur(Scanner sc) {
+        afficherTousLesUtilisateurs();
+        System.out.print("Entrez l'ID de l'utilisateur à supprimer : ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        if (UserDao.deleteUser(id)) {
+            System.out.println("Utilisateur supprimé.");
+        } else {
+            System.out.println("Erreur lors de la suppression.");
+        }
+    }
+
     private static void ajouterProjection(Scanner sc) {
         System.out.println("\n=== AJOUTER UNE PROJECTION ===");
 
         System.out.print("Horaire de la projection (format HH:MM) : ");
         String horaire = sc.nextLine();
 
-        System.out.print("Nombre de places disponibles : ");
-        int nbPlaces = sc.nextInt();
+        System.out.print("Titre du film : ");
+        String titreFilm = sc.nextLine();
 
-        System.out.print("ID du film : ");
-        int idFilm = sc.nextInt();
+        System.out.print("Numéro de la salle : ");
+        int numeroSalle = sc.nextInt();
+        sc.nextLine(); // vider le buffer
 
-        System.out.print("ID de la salle : ");
-        int idSalle = sc.nextInt();
+        // Récupérer l'idSalle et la salle
+        int idSalle = SalleDao.getIdSalleParNumero(numeroSalle);
+        Salle salle = salleDAO.consulterSalle(idSalle);
 
-        Projection projection = new Projection(0,horaire, nbPlaces, idFilm, idSalle);
+        if (salle == null) {
+            System.out.println("Erreur : salle introuvable !");
+            return;
+        }
+
+        int nbPlaces = 0;
+
+        // Boucle pour saisir un nombre de places valide
+        while (true) {
+            System.out.print("Nombre de places disponibles (max " + salle.getNombrePlaces() + ") : ");
+            nbPlaces = sc.nextInt();
+            sc.nextLine(); // vider le buffer
+            if (nbPlaces <= salle.getNombrePlaces()) {
+                break;
+            } else {
+                System.out.println("Erreur : Ce nombre dépasse la capacité de la salle !");
+                System.out.println("Capacité maximale de la salle : " + salle.getNombrePlaces());
+                System.out.println("Veuillez saisir un nouveau nombre de places.");
+            }
+        }
+
+        System.out.print("Prix de la séance : ");
+        BigDecimal prix = sc.nextBigDecimal();
+        sc.nextLine(); // vider buffer si besoin
+
+        int idFilm = FilmDao.getIdFilmParTitre(titreFilm);
+
+        if (idFilm == -1 || idSalle == -1) {
+            System.out.println("Erreur : film ou salle introuvable !");
+            return;
+        }
+
+        Projection projection = new Projection(0, horaire, nbPlaces, idFilm, idSalle, prix);
         ProjectionDao.creerSeance(projection);
     }
+
     private static void modifierProjection(Scanner sc) {
         System.out.println("\n=== MODIFIER UNE PROJECTION ===");
         ProjectionDao.consulterSeances();
 
         System.out.print("\nEntrez l'ID de la séance à modifier : ");
         int id_seance = sc.nextInt();
-        sc.nextLine(); // consommer
+        sc.nextLine();
 
         Projection projection = ProjectionDao.consulterProjection(id_seance);
 
         if (projection != null) {
             System.out.println("Séance trouvée : " + projection.getHoraire());
 
+            // Modifier horaire
             System.out.print("Nouvel horaire (" + projection.getHoraire() + ") : ");
             String horaire = sc.nextLine();
             if (!horaire.isEmpty()) projection.setHoraire(horaire);
 
-            System.out.print("Nouveau nombre de places (" + projection.getNbPlaces() + ") : ");
+            // Modifier titre du film (et récupérer son ID)
+            System.out.print("Nouveau titre du film : ");
+            String titreFilm = sc.nextLine();
+            int idFilm = projection.getId_film();
+            if (!titreFilm.isEmpty()) {
+                idFilm = FilmDao.getIdFilmParTitre(titreFilm);
+                if (idFilm == -1) {
+                    System.out.println("Erreur : film introuvable !");
+                    return;
+                }
+                projection.setId_film(idFilm);
+            }
+
+            // Modifier numéro de salle (et récupérer son ID)
+            System.out.print("Nouveau numéro de salle : ");
+            String numeroSalleStr = sc.nextLine();
+            int idSalle = projection.getId_salle();
+            if (!numeroSalleStr.isEmpty()) {
+                int numeroSalle;
+                try {
+                    numeroSalle = Integer.parseInt(numeroSalleStr);
+                } catch (NumberFormatException e) {
+                    System.out.println("Erreur : numéro de salle invalide !");
+                    return;
+                }
+                idSalle = SalleDao.getIdSalleParNumero(numeroSalle);
+                if (idSalle == -1) {
+                    System.out.println("Erreur : salle introuvable !");
+                    return;
+                }
+                projection.setId_salle(idSalle);
+            }
+
+            // Récupérer la salle pour vérifier la capacité
+            Salle salle = salleDAO.consulterSalle(idSalle);
+            if (salle == null) {
+                System.out.println("Erreur : salle introuvable !");
+                return;
+            }
+
+            // Modifier nombre de places avec validation de la capacité
+            int nbPlacesActuel = projection.getNbPlaces();
+            int nbPlaces = nbPlacesActuel;
+            System.out.print("Nouveau nombre de places (" + nbPlacesActuel + ") : ");
             String nbPlacesStr = sc.nextLine();
-            if (!nbPlacesStr.isEmpty()) projection.setNbPlaces(Integer.parseInt(nbPlacesStr));
 
-            System.out.print("Nouvel ID Film (" + projection.getId_film() + ") : ");
-            String idFilmStr = sc.nextLine();
-            if (!idFilmStr.isEmpty()) projection.setId_film(Integer.parseInt(idFilmStr));
+            if (!nbPlacesStr.isEmpty()) {
+                boolean valide = false;
+                while (!valide) {
+                    try {
+                        nbPlaces = Integer.parseInt(nbPlacesStr);
+                        if (nbPlaces <= salle.getNombrePlaces()) {
+                            valide = true;
+                        } else {
+                            System.out.println("Erreur : Ce nombre dépasse la capacité de la salle !");
+                            System.out.println("Capacité maximale de la salle : " + salle.getNombrePlaces());
+                            System.out.print("Veuillez saisir un nouveau nombre de places : ");
+                            nbPlacesStr = sc.nextLine();
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Erreur : saisie invalide, veuillez entrer un nombre entier.");
+                        System.out.print("Veuillez saisir un nouveau nombre de places : ");
+                        nbPlacesStr = sc.nextLine();
+                    }
+                }
+                projection.setNbPlaces(nbPlaces);
+            }
 
-            System.out.print("Nouvel ID Salle (" + projection.getId_salle() + ") : ");
-            String idSalleStr = sc.nextLine();
-            if (!idSalleStr.isEmpty()) projection.setId_salle(Integer.parseInt(idSalleStr));
+            // Modifier prix de la séance
+            System.out.print("Nouveau prix (" + projection.getPrix() + ") : ");
+            String prixStr = sc.nextLine();
+            if (!prixStr.isEmpty()) {
+                try {
+                    BigDecimal prix = new BigDecimal(prixStr);
+                    projection.setPrix(prix);
+                } catch (NumberFormatException e) {
+                    System.out.println("Erreur : prix invalide. La valeur n'a pas été modifiée.");
+                }
+            }
 
+            // Mettre à jour la projection en base
             ProjectionDao.modifierSeance(projection);
+
         } else {
             System.out.println("Projection non trouvée avec l'ID : " + id_seance);
         }
     }
 
 
+
+
     // Supprimer une projection
     private static void supprimerProjection(Scanner sc) {
         System.out.println("\n=== SUPPRIMER UNE PROJECTION ===");
-
+        ProjectionDao.consulterSeances();
         System.out.print("ID de la projection à supprimer : ");
         int idSeance = sc.nextInt();
 
         ProjectionDao.supprimerSeance(idSeance);
     }
-    private static void consulterProjections() {
-        System.out.println("\n=== CONSULTER LES PROJECTIONS ===");
-        ProjectionDao.consulterSeances();
-    }
+
+
+
     private static void ajouterFilm(Scanner sc) {
         System.out.println("\n=== AJOUTER UN FILM ===");
-
-        System.out.print("Nom : ");
-        String nom = sc.nextLine();
 
         System.out.print("Date (JJ/MM/AAAA) : ");
         String date = sc.nextLine();
@@ -386,7 +671,7 @@ public class Main {
         System.out.print("Description : ");
         String description = sc.nextLine();
 
-        Film nouveauFilm = new Film(nom, date, categorie, titre, duree, realisateur, description);
+        Film nouveauFilm = new Film(date, categorie, titre, duree, realisateur, description);
 
         if (filmDAO.ajouterFilm(nouveauFilm)) {
             System.out.println("Film ajouté avec succès !");
@@ -407,10 +692,6 @@ public class Main {
 
         if (film != null) {
             System.out.println("Film trouvé : " + film.getTitre());
-
-            System.out.print("Nouveau nom (" + film.getNom() + ") : ");
-            String nom = sc.nextLine();
-            if (!nom.isEmpty()) film.setNom(nom);
 
             System.out.print("Nouvelle date (" + film.getDate() + ") : ");
             String date = sc.nextLine();
@@ -482,13 +763,13 @@ public class Main {
         if (films.isEmpty()) {
             System.out.println("Aucun film trouvé.");
         } else {
-            System.out.printf("%-5s | %-20s | %-10s | %-15s | %-20s | %-6s | %-20s%n",
-                    "ID", "Nom", "Date", "Catégorie", "Titre", "Durée", "Réalisateur");
+            System.out.printf("%-5s | %-10s | %-15s | %-20s | %-6s | %-20s%n",
+                    "ID","Date", "Catégorie", "Titre", "Durée", "Réalisateur");
             System.out.println("-".repeat(105));
 
             for (Film film : films) {
-                System.out.printf("%-5d | %-20s | %-10s | %-15s | %-20s | %-6d | %-20s%n",
-                        film.getIdFilm(), film.getNom(), film.getDate(),
+                System.out.printf("%-5d | %-10s | %-15s | %-20s | %-6d | %-20s%n",
+                        film.getIdFilm(), film.getDate(),
                         film.getCategorie(), film.getTitre(), film.getDuree(),
                         film.getRealisateur());
             }
@@ -511,8 +792,8 @@ public class Main {
             System.out.println("-".repeat(105));
 
             for (Film film : films) {
-                System.out.printf("%-5d | %-20s | %-10s | %-15s | %-20s | %-6d | %-20s%n",
-                        film.getIdFilm(), film.getNom(), film.getDate(),
+                System.out.printf("%-5d | %-10s | %-15s | %-20s | %-6d | %-20s%n",
+                        film.getIdFilm(), film.getDate(),
                         film.getCategorie(), film.getTitre(), film.getDuree(),
                         film.getRealisateur());
             }
@@ -621,11 +902,10 @@ public class Main {
 
     private static void consulterMesReservations(User user) {
         List<Reservation> reservations = ReservationDao.consulterReservationsParUser(user.getId());
-        for (Reservation r : reservations) {
-            System.out.println(r);
-        }
     }
-    private static void payerReservation(Scanner sc) {
+    private static void payerReservation(Scanner sc,User user) {
+        System.out.print("La liste de mes reservation : ");
+        consulterMesReservations(user);
         System.out.print("Entrez l'ID de la réservation à payer : ");
         int idReservation = sc.nextInt();
         sc.nextLine();
@@ -638,30 +918,10 @@ public class Main {
     }
     private static void consulterToutesReservations() {
         List<Reservation> reservations = ReservationDao.consulterToutesReservations();
-        for (Reservation r : reservations) {
-            System.out.println(r);
-        }
+
     }
-    private static void consulterMesBillets(User user) {
-        System.out.println("\n=== CONSULTER MES BILLETS ===");
-        List<Billet> billets = BilletDao.consulterBilletsParUser(user.getId());
-        if (billets.isEmpty()) {
-            System.out.println("Vous n'avez aucun billet.");
-        } else {
-            for (Billet billet : billets) {
-                System.out.println(billet);
-            }
-        }
-    }
-    private static void consulterTousLesBillets() {
-        System.out.println("\n=== CONSULTER TOUS LES BILLETS ===");
-        List<Billet> billets = BilletDao.consulterTousBillets();
-        if (billets.isEmpty()) {
-            System.out.println("Aucun billet trouvé.");
-        } else {
-            for (Billet billet : billets) {
-                System.out.println(billet);
-            }
-        }
-    }
+
+
+
+
 }

@@ -10,19 +10,19 @@ public class FilmDao {
 
     // Ajouter un nouveau film
     public boolean ajouterFilm(Film film) {
-        String query = "INSERT INTO film (nom, date, categorie, titre, duree, realisateur, description) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO film (date, categorie, titre, duree, realisateur, description) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DatbaseCnx.connect();
              PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setString(1, film.getNom());
-            pstmt.setString(2, film.getDate());
-            pstmt.setString(3, film.getCategorie());
-            pstmt.setString(4, film.getTitre());
-            pstmt.setInt(5, film.getDuree());
-            pstmt.setString(6, film.getRealisateur());
-            pstmt.setString(7, film.getDescription());
+
+            pstmt.setString(1, film.getDate());
+            pstmt.setString(2, film.getCategorie());
+            pstmt.setString(3, film.getTitre());
+            pstmt.setInt(4, film.getDuree());
+            pstmt.setString(5, film.getRealisateur());
+            pstmt.setString(6, film.getDescription());
 
             int rowsAffected = pstmt.executeUpdate();
 
@@ -45,20 +45,20 @@ public class FilmDao {
 
     // Modifier un film existant
     public boolean modifierFilm(Film film) {
-        String query = "UPDATE film SET nom = ?, date = ?, categorie = ?, titre = ?, " +
+        String query = "UPDATE film SET date = ?, categorie = ?, titre = ?, " +
                 "duree = ?, realisateur = ?, description = ? WHERE idFilm = ?";
 
         try (Connection connection = DatbaseCnx.connect();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
-            pstmt.setString(1, film.getNom());
-            pstmt.setString(2, film.getDate());
-            pstmt.setString(3, film.getCategorie());
-            pstmt.setString(4, film.getTitre());
-            pstmt.setInt(5, film.getDuree());
-            pstmt.setString(6, film.getRealisateur());
-            pstmt.setString(7, film.getDescription());
-            pstmt.setInt(8, film.getIdFilm());
+
+            pstmt.setString(1, film.getDate());
+            pstmt.setString(2, film.getCategorie());
+            pstmt.setString(3, film.getTitre());
+            pstmt.setInt(4, film.getDuree());
+            pstmt.setString(5, film.getRealisateur());
+            pstmt.setString(6, film.getDescription());
+            pstmt.setInt(7, film.getIdFilm());
 
             int rowsAffected = pstmt.executeUpdate();
 
@@ -113,7 +113,6 @@ public class FilmDao {
             if (rs.next()) {
                 Film film = new Film();
                 film.setIdFilm(rs.getInt("idFilm"));
-                film.setNom(rs.getString("nom"));
                 film.setDate(rs.getString("date"));
                 film.setCategorie(rs.getString("categorie"));
                 film.setTitre(rs.getString("titre"));
@@ -144,7 +143,6 @@ public class FilmDao {
             while (rs.next()) {
                 Film film = new Film();
                 film.setIdFilm(rs.getInt("idFilm"));
-                film.setNom(rs.getString("nom"));
                 film.setDate(rs.getString("date"));
                 film.setCategorie(rs.getString("categorie"));
                 film.setTitre(rs.getString("titre"));
@@ -179,7 +177,6 @@ public class FilmDao {
             while (rs.next()) {
                 Film film = new Film();
                 film.setIdFilm(rs.getInt("idFilm"));
-                film.setNom(rs.getString("nom"));
                 film.setDate(rs.getString("date"));
                 film.setCategorie(rs.getString("categorie"));
                 film.setTitre(rs.getString("titre"));
@@ -197,4 +194,20 @@ public class FilmDao {
 
         return films;
     }
+
+    public static int getIdFilmParTitre(String titre) {
+        String sql = "SELECT idFilm FROM film WHERE titre = ?";
+        try (Connection conn = DatbaseCnx.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, titre);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("idFilm");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur récupération ID film : " + e.getMessage());
+        }
+        return -1; // si non trouvé
+    }
+
 }

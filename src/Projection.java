@@ -1,17 +1,29 @@
+import java.math.BigDecimal;
+
 public class Projection {
     private int id_seance;
     private String horaire;
     private int nbPlaces;
     private int id_film;
     private int id_salle;
+    private BigDecimal prix;
 
-    public Projection(int id_seance, String horaire, int nbPlaces, int id_film,  int id_salle) {
+    public Projection(int id_seance, String horaire, int nbPlaces, int id_film,  int id_salle,BigDecimal prix) {
         this.id_seance = id_seance;
         this.horaire = horaire;
         this.nbPlaces = nbPlaces;
         this.id_film = id_film;
         this.id_salle = id_salle;
+        this.prix = prix;
 
+    }
+
+    public BigDecimal getPrix() {
+        return prix;
+    }
+
+    public void setPrix(BigDecimal prix) {
+        this.prix = prix;
     }
 
     public int getId_film() {

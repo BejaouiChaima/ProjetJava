@@ -1,6 +1,5 @@
 public class Film {
     private int idFilm;
-    private String nom;
     private String date;
     private String categorie;
     private String titre;
@@ -11,10 +10,9 @@ public class Film {
     // Constructeur
     public Film() {}
 
-    public Film(int idFilm, String nom, String date, String categorie, String titre,
+    public Film(int idFilm,String date, String categorie, String titre,
                 int duree, String realisateur, String description) {
         this.idFilm = idFilm;
-        this.nom = nom;
         this.date = date;
         this.categorie = categorie;
         this.titre = titre;
@@ -24,9 +22,8 @@ public class Film {
     }
 
     // Constructeur sans ID pour la création
-    public Film(String nom, String date, String categorie, String titre,
+    public Film(String date, String categorie, String titre,
                 int duree, String realisateur, String description) {
-        this.nom = nom;
         this.date = date;
         this.categorie = categorie;
         this.titre = titre;
@@ -44,13 +41,9 @@ public class Film {
         this.idFilm = idFilm;
     }
 
-    public String getNom() {
-        return nom;
-    }
 
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
+
+
 
     public String getDate() {
         return date;
@@ -104,7 +97,6 @@ public class Film {
     public String toString() {
         return "Film{" +
                 "idFilm=" + idFilm +
-                ", nom='" + nom + '\'' +
                 ", date='" + date + '\'' +
                 ", categorie='" + categorie + '\'' +
                 ", titre='" + titre + '\'' +
